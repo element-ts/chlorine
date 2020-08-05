@@ -30,7 +30,12 @@
 		"url": "https://github.com/elijahjcobb/***/issues"
 	},
 	"homepage": "https://github.com/elijahjcobb/***#readme",
-	"dependencies": {},
+	"dependencies": {
+		"@elijahjcobb/prom-type": "latest",
+		"@element-ts/oxygen": "latest",
+		"@elijahjcobb/better-json": "latest",
+		"@element-ts/neon": "latest"
+	},
 	"devDependencies": {
 		"@types/node": "latest",
 		"typescript": "latest",
