@@ -20,28 +20,37 @@ import {OAny, OObjectType, OOptional, OStandardType} from "@element-ts/oxygen";
 import {Neon} from "@element-ts/neon";
 import {BetterJSON} from "@elijahjcobb/better-json";
 
+export interface ClCommanderConfig {
+	debug?: boolean;
+}
+
 export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends CLRegistryStructure<RC>, R> implements ClRegistrar<LC, RC, R>{
 
-	protected registry: ClRegistry<LC, RC, R>;
-	protected messageManager: ClMessageManager;
-	protected logger: Neon;
+	private readonly referencer: R;
+	protected readonly registry: ClRegistry<LC, RC, R>;
+	protected readonly messageManager: ClMessageManager;
+	public static readonly logger: Neon = new Neon();
 
-	protected constructor() {
+	protected constructor(referencer: R, config?: ClCommanderConfig) {
 
+		this.referencer = referencer;
 		this.registry = new ClRegistry();
 		this.messageManager = new ClMessageManager();
-		this.logger = new Neon();
-		this.logger.setTitle("@element-ts/chlorine - CLCommander");
+
+		if (config?.debug === true) {
+			ClCommander.logger.setTitle("@element-ts/chlorine - CLCommander");
+			ClCommander.logger.enable();
+		}
 
 	}
 
 	private async handleOnReturn(message: ClMessage): Promise<void> {
 
-		this.logger.log(`Message (${message.id}) is a response.`);
+		ClCommander.logger.log(`Message (${message.id}) is a response.`);
 
 		const handler: ClMessageHandler | undefined = this.messageManager.get(message.id);
 		if (handler === undefined) {
-			this.logger.err("ClSocket.handleOnReturn(): Handler not found for message id.");
+			ClCommander.logger.err("ClSocket.handleOnReturn(): Handler not found for message id.");
 			return;
 		}
 
@@ -49,7 +58,7 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 
 	}
 
-	public abstract async send(packet: string): Promise<void>;
+	protected abstract async send(packet: string): Promise<void>;
 
 	protected async sendMessage(message: ClMessage): Promise<void> {
 
@@ -58,8 +67,8 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 		try {
 			msgString = JSON.stringify(message);
 		} catch (e) {
-			this.logger.err(e);
-			this.logger.err("Could not convert ClMessage to a string.");
+			ClCommander.logger.err(e);
+			ClCommander.logger.err("Could not convert ClMessage to a string.");
 			return;
 		}
 
@@ -70,18 +79,18 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 	public async receive(packet: string): Promise<void> {
 
 		if (!OStandardType.string.conforms(packet)) {
-			this.logger.err("ClSocket.onMessage(): Data received was not an instance of string.");
+			ClCommander.logger.err("ClSocket.onMessage(): Data received was not an instance of string.");
 			return;
 		}
 
-		this.logger.log(`Did receive message (${packet.length.toLocaleString()} bytes).`);
+		ClCommander.logger.log(`Did receive message (${packet.length.toLocaleString()} bytes).`);
 
 		let message: ClMessage;
 
 		try {
 			message = BetterJSON.parse(packet);
 		} catch (e) {
-			this.logger.err("ClSocket.onMessage(): Data received was able to parse to JSON.");
+			ClCommander.logger.err("ClSocket.onMessage(): Data received was able to parse to JSON.");
 			return;
 		}
 
@@ -92,13 +101,13 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 			param: OOptional.maybe(OAny.any())
 		});
 
-		this.logger.log(`Did parse message (${message.id}) -> '${packet}'.`);
+		ClCommander.logger.log(`Did parse message (${message.id}) -> '${packet}'.`);
 
 		const isValid: boolean = requiredType.conforms(message);
 
 		if (!isValid) {
-			this.logger.err(message);
-			this.logger.err("ClSocket.onMessage(): Data received did not conform to lithium message types.");
+			ClCommander.logger.err(message);
+			ClCommander.logger.err("ClSocket.onMessage(): Data received did not conform to chlorine message types.");
 			return;
 		}
 
@@ -106,7 +115,7 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 
 		if (command === "return" || command === "error") return this.handleOnReturn(message);
 
-		this.logger.log(`Looking for handler for message (${message.id}).`);
+		ClCommander.logger.log(`Looking for handler for message (${message.id}).`);
 		const handler: ClCommandHandler<any> | undefined = this.registry.getHandlerForCommand(command);
 
 
@@ -119,18 +128,18 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 				id: message.id
 			});
 
-			this.logger.err("ClSocket.onMessage(): Command not found.");
+			ClCommander.logger.err("ClSocket.onMessage(): Command not found.");
 
 			return;
 		}
 
-		this.logger.log(`Found handler for message (${message.id}).`);
+		ClCommander.logger.log(`Found handler for message (${message.id}).`);
 
 		const param: any = message.param;
 
 		try {
 
-			const returnValue: any = await handler(param, this);
+			const returnValue: any = await handler(param, this.referencer);
 
 			await this.sendMessage({
 				timestamp: message.timestamp,
@@ -141,7 +150,7 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 
 		} catch (e) {
 
-			this.logger.err(e);
+			ClCommander.logger.err(e);
 
 			let formattedError: any = e;
 			if (e instanceof Error) formattedError = { error: e.message };

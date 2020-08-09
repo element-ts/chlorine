@@ -4,6 +4,7 @@
  * elijahcobb.com
  * github.com/elijahjcobb
  */
+import {ClCommander} from "./ClCommander";
 
 export interface ClRegistrar<LC extends CLRegistryStructure<LC>, RC extends CLRegistryStructure<RC>, R> {
 	implement<C extends ClCommandName<LC>>(command: C, handler: ClCommandHandlerStructure<LC, RC, C, R>): void;
@@ -19,26 +20,37 @@ export type ClCommandHandlerReturn<T extends CLRegistryStructure<T>, C extends C
 export type ClCommandHandlerReturnPromisified<T extends CLRegistryStructure<T>, C extends ClCommandName<T>> = Promise<ClCommandHandlerReturn<T, C>>;
 export type ClCommandHandlerStructure<LC extends CLRegistryStructure<LC>, RC extends CLRegistryStructure<RC>, C extends ClCommandName<LC>, R> = (value: ClCommandHandlerParam<LC, C>, referencer: R) => ClCommandHandlerReturnPromisified<LC, C>;
 
-export class ClRegistry<LC extends CLRegistryStructure<LC>, RC extends CLRegistryStructure<RC>, R> implements ClRegistrar<LC, RC, R>{
+export class ClRegistry<LC extends CLRegistryStructure<LC>, RC extends CLRegistryStructure<RC>, R = any> implements ClRegistrar<LC, RC, R>{
 
 	private commands: Map<string, ClCommandHandler<R>>;
 
 	public constructor() {
 
 		this.commands = new Map<string, ClCommandHandler<R>>();
+		ClCommander.logger.log("Generated CLRegistry internal command map.");
 
 	}
 
 	public implement<C extends ClCommandName<LC>>(command: C, handler: ClCommandHandlerStructure<LC, RC, C, R>): void {
 
+		ClCommander.logger.log(`Will implement command '${command}'.`);
 		this.commands.set(command, handler);
+		ClCommander.logger.log(`Did implement command '${command}'.`);
 
 	}
 
 	public getHandlerForCommand(command: string): ClCommandHandler<R> | undefined {
 
-		return this.commands.get(command);
+		ClCommander.logger.log(`Will fetch handler for command '${command}'.`);
+		const handler = this.commands.get(command);
+		if (handler) ClCommander.logger.log(`Did fetch handler for command '${command}'.`);
+		else ClCommander.logger.err(`Could not find handler for command '${command}'.`);
+		return handler;
 
+	}
+
+	public size(): number {
+		return this.commands.size;
 	}
 
 }
