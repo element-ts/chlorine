@@ -66,7 +66,7 @@ test("Handler Evaluation", async() => {
 	const handler = registry.getHandlerForCommand("x");
 	expect(handler).toBeDefined();
 	if (handler === undefined) return;
-	const value = await handler(undefined, undefined);
+	const value = await handler(undefined);
 	expect(value).toEqual(num);
 
 

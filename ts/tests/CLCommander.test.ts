@@ -21,13 +21,13 @@ interface SideBCommands extends CLRegistryStructure<SideBCommands> {
 	};
 }
 
-class SideA extends ClCommander<SideACommands, SideBCommands, number> {
+class SideA extends ClCommander<SideACommands, SideBCommands> {
 
 	public handler: ((packet: string) => Promise<void>) | undefined;
 
 	public constructor() {
 
-		super(1337);
+		super();
 
 	}
 
@@ -39,13 +39,13 @@ class SideA extends ClCommander<SideACommands, SideBCommands, number> {
 
 }
 
-class SideB extends ClCommander<SideBCommands, SideACommands, number> {
+class SideB extends ClCommander<SideBCommands, SideACommands> {
 
 	public handler: ((packet: string) => Promise<void>) | undefined;
 
 	public constructor() {
 
-		super(1337);
+		super();
 
 	}
 

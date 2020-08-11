@@ -24,16 +24,14 @@ export interface ClCommanderConfig {
 	debug?: boolean;
 }
 
-export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends CLRegistryStructure<RC>, R> implements ClRegistrar<LC, RC, R>{
+export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends CLRegistryStructure<RC>> implements ClRegistrar<LC, RC>{
 
-	private readonly referencer: R;
-	protected readonly registry: ClRegistry<LC, RC, R>;
+	protected readonly registry: ClRegistry<LC, RC>;
 	protected readonly messageManager: ClMessageManager;
 	public static readonly logger: Neon = new Neon();
 
-	protected constructor(referencer: R, config?: ClCommanderConfig) {
+	protected constructor(config?: ClCommanderConfig) {
 
-		this.referencer = referencer;
 		this.registry = new ClRegistry();
 		this.messageManager = new ClMessageManager();
 
@@ -139,7 +137,7 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 
 		try {
 
-			const returnValue: any = await handler(param, this.referencer);
+			const returnValue: any = await handler(param);
 
 			await this.sendMessage({
 				timestamp: message.timestamp,
@@ -166,7 +164,7 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 
 	}
 
-	public implement<C extends ClCommandName<LC>>(command: C, handler: ClCommandHandlerStructure<LC, RC, C, R>): void {
+	public implement<C extends ClCommandName<LC>>(command: C, handler: ClCommandHandlerStructure<LC, RC, C>): void {
 
 		this.registry.implement(command, handler);
 
