@@ -56,7 +56,7 @@ export abstract class ClCommander<LC extends CLRegistryStructure<LC>, RC extends
 
 	}
 
-	protected abstract async send(packet: string): Promise<void>;
+	protected abstract send(packet: string): Promise<void>;
 
 	protected async sendMessage(message: ClMessage): Promise<void> {
 
