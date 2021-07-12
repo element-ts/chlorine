@@ -4,8 +4,8 @@
  * elijahcobb.com
  * github.com/elijahjcobb
  */
-import {ClCommander} from "./ClCommander";
 
+import {ClCommander} from "./ClCommander";
 
 export interface ClMessage<T = any> {
 	id: string;
